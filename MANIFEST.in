@@ -1,0 +1,5 @@
+recursive-include src/ifs_etc/refdata *.dat
+recursive-include src/ifs_etc/refdata *.fits
+recursive-include src/ifs_etc/refdata refdata *.par
+recursive-include src/ifs_etc/refdata refdata *.csv
+

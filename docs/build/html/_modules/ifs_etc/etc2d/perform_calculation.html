@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ifs_etc.etc2d.perform_calculation &mdash; ifs_etc 0.0.3 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> ifs_etc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/ifs_etc.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ifs_etc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>ifs_etc.etc2d.perform_calculation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ifs_etc.etc2d.perform_calculation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pdb</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">from</span> <span class="nn">einops</span> <span class="kn">import</span> <span class="n">repeat</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">source</span>
+<span class="kn">from</span> <span class="nn">.source</span> <span class="kn">import</span> <span class="n">filter_mag</span><span class="p">,</span> <span class="n">read_filter</span>
+<span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">get_throughput</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
+<span class="n">snpp_refdata</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;refdata/&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="flux2electron"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.flux2electron">[docs]</a><span class="k">def</span> <span class="nf">flux2electron</span><span class="p">(</span><span class="n">spaxel_xsize</span><span class="p">,</span> <span class="n">spaxel_ysize</span><span class="p">,</span> <span class="n">wavearr</span><span class="p">,</span> <span class="n">fluxarr</span><span class="p">,</span> <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span><span class="p">,</span> <span class="n">fluxunit</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        spaxel_xsize: </span>
+<span class="sd">        spaxel_ysize: </span>
+<span class="sd">        wavearr: </span>
+<span class="sd">        fluxarr: erg/s/cm^2/A/arcsec^2 or erg/s/cm^2/Hz/arcsec^2</span>
+<span class="sd">        throughtputwave: </span>
+<span class="sd">        throughtputvalue: </span>
+<span class="sd">        fluxunit: &#39;erg/s/cm^2/A&#39; or &#39;erg/s/cm^2/hz&#39;</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># instru = config[&#39;configuration&#39;]</span>
+
+    <span class="n">cc</span> <span class="o">=</span> <span class="mf">3.0e18</span>   <span class="c1"># speed of light, A/s</span>
+    <span class="n">spaxel_area</span> <span class="o">=</span> <span class="n">spaxel_xsize</span> <span class="o">*</span> <span class="n">spaxel_ysize</span>     <span class="c1"># arcsec^2</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="mi">200</span>  <span class="c1"># diameter of the telescope, in cm unit</span>
+    <span class="n">obscure</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># effective central obscuration, no unit</span>
+    <span class="n">telarea</span> <span class="o">=</span> <span class="mf">3.14159</span> <span class="o">/</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="n">d</span> <span class="o">*</span> <span class="n">d</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">obscure</span><span class="p">)</span>  <span class="c1"># effective area of the telescope, cm^2</span>
+    <span class="n">delta_lambda_per_pixel</span> <span class="o">=</span> <span class="mf">1.755555</span>  <span class="c1"># per pixel</span>
+    <span class="n">delta_hz_per_specpixel</span> <span class="o">=</span> <span class="n">delta_lambda_per_pixel</span> <span class="o">/</span> <span class="n">wavearr</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">cc</span>  <span class="c1"># s^-1</span>
+    <span class="n">specsampling</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># 2 pixels</span>
+    <span class="n">planckh</span> <span class="o">=</span> <span class="mf">6.626e-27</span>  <span class="c1"># erg*s</span>
+    <span class="n">hv</span> <span class="o">=</span> <span class="n">planckh</span> <span class="o">*</span> <span class="n">cc</span> <span class="o">/</span> <span class="n">wavearr</span>  <span class="c1"># erg</span>
+    <span class="n">QE</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">wavearr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">qvalue</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">wavearr</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">qvalue</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">wavearr</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span><span class="p">)</span>
+        <span class="n">qvalue</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">qvalue</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">wavearr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s1">&#39; &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">wavearr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="k">elif</span> <span class="n">wavearr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">qvalue</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">wavearr</span><span class="p">,</span> <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;check dimension of the input array.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">fluxunit</span><span class="o">==</span><span class="s1">&#39;erg/s/cm^2/A&#39;</span><span class="p">:</span>
+        <span class="n">isource1</span> <span class="o">=</span> <span class="n">fluxarr</span> <span class="o">*</span> <span class="n">wavearr</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">cc</span> <span class="o">*</span> <span class="n">spaxel_area</span>  <span class="c1"># erg/s/cm^2/Hz per spaxel</span>
+        <span class="n">isource2</span> <span class="o">=</span> <span class="n">isource1</span> <span class="o">*</span> <span class="n">telarea</span>  <span class="c1"># erg/s/Hz per spaxel</span>
+        <span class="n">isource3</span> <span class="o">=</span> <span class="n">qvalue</span> <span class="o">*</span> <span class="n">isource2</span> <span class="o">*</span> <span class="n">delta_hz_per_specpixel</span>  <span class="c1"># erg/s per spaxel</span>
+        <span class="n">isource4</span> <span class="o">=</span> <span class="n">isource3</span> <span class="o">*</span> <span class="n">specsampling</span>  <span class="c1"># erg/s per spec-element per spaxel</span>
+        <span class="n">isource5</span> <span class="o">=</span> <span class="n">isource4</span> <span class="o">/</span> <span class="n">hv</span>  <span class="c1"># phot/s per spec-element per spaxel</span>
+        <span class="n">isource6</span> <span class="o">=</span> <span class="n">isource5</span> <span class="o">*</span> <span class="n">QE</span>  <span class="c1"># e/s per spec-element per spaxel</span>
+
+        <span class="k">return</span> <span class="n">isource6</span>
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span></div>
+
+
+<div class="viewcode-block" id="electron2flux"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.electron2flux">[docs]</a><span class="k">def</span> <span class="nf">electron2flux</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">wavearr</span><span class="p">,</span> <span class="n">countsarr</span><span class="p">,</span> <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span><span class="p">,</span> <span class="n">fluxunit</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    :param wavearr: A</span>
+<span class="sd">    :param countsarr: e-/s</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">instru</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;configuration&#39;</span><span class="p">]</span>
+
+    <span class="n">cc</span> <span class="o">=</span> <span class="mf">3.0e18</span>   <span class="c1"># speed of light, A/s</span>
+    <span class="n">spaxel_area</span> <span class="o">=</span> <span class="n">instru</span><span class="p">[</span><span class="s1">&#39;spaxel_xsize&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">instru</span><span class="p">[</span><span class="s1">&#39;spaxel_ysize&#39;</span><span class="p">]</span>    <span class="c1"># arcsec^2</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="mi">200</span>  <span class="c1"># diameter of the telescope, in cm unit</span>
+    <span class="n">obscure</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># effective central obscuration, no unit</span>
+    <span class="n">telarea</span> <span class="o">=</span> <span class="mf">3.14159</span> <span class="o">/</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="n">d</span> <span class="o">*</span> <span class="n">d</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">obscure</span><span class="p">)</span>  <span class="c1"># effective area of the telescope, cm^2</span>
+    <span class="n">delta_lambda_per_pixel</span> <span class="o">=</span> <span class="mf">1.755555</span>  <span class="c1"># per pixel</span>
+    <span class="n">delta_hz_per_specpixel</span> <span class="o">=</span> <span class="n">delta_lambda_per_pixel</span> <span class="o">/</span> <span class="n">wavearr</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">cc</span>  <span class="c1"># s^-1</span>
+    <span class="n">specsampling</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># 2 pixels</span>
+    <span class="n">planckh</span> <span class="o">=</span> <span class="mf">6.626e-27</span>  <span class="c1"># erg*s</span>
+    <span class="n">hv</span> <span class="o">=</span> <span class="n">planckh</span> <span class="o">*</span> <span class="n">cc</span> <span class="o">/</span> <span class="n">wavearr</span>  <span class="c1"># erg</span>
+    <span class="n">QE</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">qvalue</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">wavearr</span><span class="p">,</span> <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span><span class="p">)</span>
+
+
+    <span class="k">if</span> <span class="n">fluxunit</span><span class="o">==</span><span class="s1">&#39;erg/s/cm^2/A&#39;</span><span class="p">:</span>
+
+        <span class="n">isource5</span> <span class="o">=</span> <span class="n">countsarr</span> <span class="o">/</span> <span class="n">QE</span>  <span class="c1"># phot/s per spec-element per spaxel</span>
+        <span class="n">isource4</span> <span class="o">=</span> <span class="n">isource5</span> <span class="o">*</span> <span class="n">hv</span>  <span class="c1"># erg/s per spec-element per spaxel</span>
+        <span class="n">isource3</span> <span class="o">=</span> <span class="n">isource4</span> <span class="o">/</span> <span class="n">specsampling</span>  <span class="c1"># erg/s per spec-element per spaxel</span>
+        <span class="n">isource2</span> <span class="o">=</span> <span class="n">isource3</span> <span class="o">/</span> <span class="n">delta_hz_per_specpixel</span> <span class="o">/</span> <span class="n">qvalue</span>  <span class="c1"># erg/s per spaxel</span>
+        <span class="n">isource1</span> <span class="o">=</span> <span class="n">isource2</span> <span class="o">/</span> <span class="n">telarea</span>  <span class="c1"># erg/s/Hz per spaxel</span>
+        <span class="n">fluxarr</span> <span class="o">=</span> <span class="n">isource1</span> <span class="o">/</span> <span class="n">wavearr</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">cc</span> <span class="o">/</span> <span class="n">spaxel_area</span>  <span class="c1"># erg/s/cm^2/Hz per spaxel</span>
+
+        <span class="k">return</span> <span class="n">fluxarr</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span></div>
+
+
+<div class="viewcode-block" id="get_ms_nsky"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.get_ms_nsky">[docs]</a><span class="k">def</span> <span class="nf">get_ms_nsky</span><span class="p">(</span><span class="n">wavearr</span><span class="p">,</span> <span class="n">spaxel_xsize</span><span class="p">,</span> <span class="n">spaxel_ysize</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        wavearr:</span>
+<span class="sd">        spaxel_xsize:</span>
+<span class="sd">        spaxel_ysize:</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        sky counts (e-/s), in 1d array.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># know the sky counts in MS ccd per pixel in different bands,</span>
+    <span class="c1"># Thus convert it to sky spectrum (counts) in IFS ccd per spaxel</span>
+
+    <span class="n">fluxskypp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wavearr</span><span class="p">))</span>
+
+    <span class="n">ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">wavearr</span> <span class="o">&gt;=</span> <span class="mi">2550</span><span class="p">,</span> <span class="n">wavearr</span> <span class="o">&lt;=</span> <span class="mi">4000</span><span class="p">)</span>
+    <span class="n">counta</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ii</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">counta</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fluxskypp</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.028</span> <span class="o">/</span> <span class="n">counta</span>      <span class="c1"># e/s/spaxel/pixel</span>
+    <span class="n">ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">wavearr</span> <span class="o">&gt;=</span> <span class="mi">4000</span><span class="p">,</span> <span class="n">wavearr</span> <span class="o">&lt;=</span> <span class="mi">6000</span><span class="p">)</span>
+    <span class="n">countb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ii</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">countb</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fluxskypp</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.229</span> <span class="o">/</span> <span class="n">countb</span>
+    <span class="n">ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">wavearr</span> <span class="o">&gt;=</span> <span class="mi">6000</span><span class="p">,</span> <span class="n">wavearr</span> <span class="o">&lt;=</span> <span class="mi">9000</span><span class="p">)</span>
+    <span class="n">countc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ii</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">countc</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fluxskypp</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.301</span> <span class="o">/</span> <span class="n">countc</span>
+    <span class="n">ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">wavearr</span> <span class="o">&gt;=</span> <span class="mi">9000</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">countd</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ii</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">countd</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fluxskypp</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.301</span> <span class="o">/</span> <span class="n">countd</span>
+
+    <span class="n">ms_pix_area</span> <span class="o">=</span> <span class="mf">0.074</span><span class="o">**</span><span class="mi">2</span>      <span class="c1"># arcsec</span>
+    <span class="n">spaxel_area</span> <span class="o">=</span> <span class="n">spaxel_xsize</span> <span class="o">*</span> <span class="n">spaxel_ysize</span>   <span class="c1"># arcsec</span>
+    <span class="n">factor</span> <span class="o">=</span> <span class="mf">0.9</span>
+
+    <span class="n">fluxskypp</span> <span class="o">=</span> <span class="n">fluxskypp</span> <span class="o">/</span> <span class="n">ms_pix_area</span> <span class="o">*</span> <span class="n">spaxel_area</span> <span class="o">*</span> <span class="n">factor</span>  <span class="c1"># e/s/spaxel/spec-elements</span>
+
+    <span class="k">return</span> <span class="n">fluxskypp</span></div>
+
+
+
+<div class="viewcode-block" id="get_background"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.get_background">[docs]</a><span class="k">def</span> <span class="nf">get_background</span><span class="p">(</span><span class="n">zodia_level</span><span class="p">,</span> <span class="n">earthshine_level</span><span class="p">,</span> <span class="n">wavearr</span><span class="p">,</span> <span class="n">spaxel_xsize</span><span class="p">,</span> <span class="n">spaxel_ysize</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Consider zodiacal background and earth shine background in different levels.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        zodia_level:</span>
+<span class="sd">            zodiacal level, low, median, high, corresponding index from 1-3.</span>
+<span class="sd">        earthshine_level:</span>
+<span class="sd">            earth shine level, low, median, high, corresponding index from 1-3.</span>
+<span class="sd">        wavearr:</span>
+<span class="sd">            wave array to be returned.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        sky counts (e-/s) in each spaxel element (spaxel_xsize * spaxel_ysize), in 1d array.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># get IFS throughtput</span>
+    <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span> <span class="o">=</span> <span class="n">get_throughput</span><span class="p">()</span>
+
+    <span class="c1"># get the zodia spectrum, convert to e/s/spaxel/spec-elements</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">snpp_refdata</span><span class="p">,</span> <span class="s1">&#39;csst&#39;</span><span class="p">,</span> <span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="s1">&#39;zodi_spec.csv&#39;</span><span class="p">)</span>
+    <span class="n">cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
+    <span class="n">zodia_wave</span> <span class="o">=</span> <span class="n">cat</span><span class="p">[</span><span class="s1">&#39;wave&#39;</span><span class="p">]</span>
+    <span class="n">zodia_spec</span> <span class="o">=</span> <span class="n">cat</span><span class="p">[</span><span class="s1">&#39;zodi_&#39;</span> <span class="o">+</span> <span class="n">zodia_level</span><span class="p">]</span>       <span class="c1"># erg/s/cm^2/A/arcsec^2</span>
+    <span class="n">zodia_spec_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">wavearr</span><span class="p">,</span> <span class="n">zodia_wave</span><span class="p">,</span> <span class="n">zodia_spec</span><span class="p">)</span>
+    <span class="n">zodia_counts_interp</span> <span class="o">=</span> <span class="n">flux2electron</span><span class="p">(</span><span class="n">spaxel_xsize</span><span class="p">,</span> <span class="n">spaxel_ysize</span><span class="p">,</span>
+                                       <span class="n">wavearr</span><span class="p">,</span> <span class="n">zodia_spec_interp</span><span class="p">,</span>
+                                       <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span><span class="p">,</span>
+                                       <span class="n">fluxunit</span><span class="o">=</span><span class="s1">&#39;erg/s/cm^2/A&#39;</span><span class="p">)</span>
+
+    <span class="c1"># get the earth shine spectrum, convert to e/s/spaxel/spec-elements</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">snpp_refdata</span><span class="p">,</span> <span class="s1">&#39;csst&#39;</span><span class="p">,</span> <span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="s1">&#39;earthshine_spec.csv&#39;</span><span class="p">)</span>
+    <span class="n">cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
+    <span class="n">earthshine_wave</span> <span class="o">=</span> <span class="n">cat</span><span class="p">[</span><span class="s1">&#39;wave&#39;</span><span class="p">]</span>
+    <span class="n">earthshine_spec</span> <span class="o">=</span> <span class="n">cat</span><span class="p">[</span><span class="s1">&#39;earthshine_&#39;</span> <span class="o">+</span> <span class="n">earthshine_level</span><span class="p">]</span>       <span class="c1"># erg/s/cm^2/A/arcsec^2</span>
+    <span class="n">earthshine_spec_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">wavearr</span><span class="p">,</span> <span class="n">earthshine_wave</span><span class="p">,</span> <span class="n">earthshine_spec</span><span class="p">)</span>
+    <span class="n">earthshine_counts_interp</span> <span class="o">=</span> <span class="n">flux2electron</span><span class="p">(</span><span class="n">spaxel_xsize</span><span class="p">,</span> <span class="n">spaxel_ysize</span><span class="p">,</span>
+                                       <span class="n">wavearr</span><span class="p">,</span> <span class="n">earthshine_spec_interp</span><span class="p">,</span>
+                                       <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span><span class="p">,</span>
+                                       <span class="n">fluxunit</span><span class="o">=</span><span class="s1">&#39;erg/s/cm^2/A&#39;</span><span class="p">)</span>
+
+    <span class="n">nsky</span> <span class="o">=</span> <span class="n">zodia_counts_interp</span> <span class="o">+</span> <span class="n">earthshine_counts_interp</span>
+
+
+    <span class="k">return</span> <span class="n">nsky</span></div>
+
+
+
+<div class="viewcode-block" id="DetectorCountsRate"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.DetectorCountsRate">[docs]</a><span class="k">class</span> <span class="nc">DetectorCountsRate</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">ModelCube</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+
+        <span class="c1"># pdb.set_trace()</span>
+
+        <span class="n">source</span><span class="o">.</span><span class="n">ModelCube</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">config</span>
+        <span class="p">)</span>
+
+        <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span> <span class="o">=</span> <span class="n">get_throughput</span><span class="p">()</span>
+
+        <span class="n">instru</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;configuration&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_counts</span> <span class="o">=</span> <span class="n">flux2electron</span><span class="p">(</span><span class="n">instru</span><span class="p">[</span><span class="s1">&#39;spaxel_xsize&#39;</span><span class="p">],</span> <span class="n">instru</span><span class="p">[</span><span class="s1">&#39;spaxel_ysize&#39;</span><span class="p">],</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">wavecube</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fluxcube</span><span class="p">,</span>
+                                           <span class="n">throughtputwave</span><span class="p">,</span> <span class="n">throughtputvalue</span><span class="p">,</span>
+                                           <span class="n">fluxunit</span><span class="o">=</span><span class="s1">&#39;erg/s/cm^2/A&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wavearr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wavecube</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="DetectorCounts"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.DetectorCounts">[docs]</a><span class="k">class</span> <span class="nc">DetectorCounts</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">signal</span><span class="p">):</span>
+
+        <span class="n">instru</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;configuration&#39;</span><span class="p">]</span>
+        <span class="n">ccdspec_wave</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">ccdspec_wave</span>
+        <span class="n">nw</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">ccdspec_wave</span><span class="p">)</span>
+        <span class="n">nspaxel_x</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">source_counts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">nspaxel_y</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">source_counts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="c1"># several count_rates</span>
+        <span class="n">nsource_rate_cube</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">source_counts</span>     <span class="c1"># e/s</span>
+
+        <span class="n">ndark_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">nw</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">+</span> <span class="n">instru</span><span class="p">[</span><span class="s1">&#39;dark&#39;</span><span class="p">]</span>   <span class="c1"># e/s/pix</span>
+
+        <span class="n">nreadout_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">nw</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">+</span> <span class="n">instru</span><span class="p">[</span><span class="s1">&#39;readout_noise&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>    <span class="c1"># e/pix</span>
+
+        <span class="n">nsky_rate</span> <span class="o">=</span> <span class="n">get_background</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">][</span><span class="s1">&#39;zodiacal&#39;</span><span class="p">],</span>
+                                   <span class="n">config</span><span class="p">[</span><span class="s1">&#39;background&#39;</span><span class="p">][</span><span class="s1">&#39;earth_shine&#39;</span><span class="p">],</span>
+                                   <span class="n">signal</span><span class="o">.</span><span class="n">ccdspec_wave</span><span class="p">,</span>
+                                   <span class="n">instru</span><span class="p">[</span><span class="s1">&#39;spaxel_xsize&#39;</span><span class="p">],</span>
+                                   <span class="n">instru</span><span class="p">[</span><span class="s1">&#39;spaxel_ysize&#39;</span><span class="p">])</span>
+
+        <span class="c1"># read the exptime</span>
+        <span class="n">repn</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;calc_mode&#39;</span><span class="p">][</span><span class="s1">&#39;repn&#39;</span><span class="p">]</span>
+        <span class="n">obst</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;calc_mode&#39;</span><span class="p">][</span><span class="s1">&#39;obst&#39;</span><span class="p">]</span>
+        <span class="n">npixw</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">specsampling</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># calculate the counts with exptime and extract_area.</span>
+        <span class="n">tot_t</span> <span class="o">=</span> <span class="n">repn</span> <span class="o">*</span> <span class="n">obst</span>
+        <span class="n">readout_n</span> <span class="o">=</span> <span class="n">repn</span>
+        <span class="n">ndark</span> <span class="o">=</span> <span class="p">(</span><span class="n">ndark_rate</span> <span class="o">*</span> <span class="n">tot_t</span> <span class="o">*</span> <span class="n">npixw</span> <span class="o">*</span> <span class="n">specsampling</span><span class="p">)</span>  <span class="c1"># e/s/pix * sampling * t * extraction area</span>
+        <span class="n">nreadout</span> <span class="o">=</span> <span class="n">nreadout_rate</span> <span class="o">*</span> <span class="p">(</span><span class="n">repn</span> <span class="o">*</span> <span class="n">npixw</span> <span class="o">*</span> <span class="n">specsampling</span><span class="p">)</span>  <span class="c1"># e/pix * sampling * readout times * extraction area</span>
+        <span class="n">nsource_cube</span> <span class="o">=</span> <span class="p">(</span><span class="n">nsource_rate_cube</span> <span class="o">*</span> <span class="n">tot_t</span><span class="p">)</span>  <span class="c1"># e/s/sampling * t per spaxel</span>
+        <span class="n">nsky</span> <span class="o">=</span> <span class="p">(</span><span class="n">nsky_rate</span> <span class="o">*</span> <span class="n">tot_t</span><span class="p">)</span>  <span class="c1"># e/s/sampling * t per spaxel</span>
+
+        <span class="c1"># add 2% of the source counts as straylight, scatter into the entire CCD (b: 4k*2k, r: 6k*3k)</span>
+        <span class="n">stray_frac</span> <span class="o">=</span> <span class="mf">0.02</span>
+        <span class="n">ind_blue</span> <span class="o">=</span> <span class="n">ccdspec_wave</span> <span class="o">&lt;</span> <span class="mi">5700</span>  <span class="c1"># assume the blue/red separate at 5700A</span>
+        <span class="n">ind_red</span> <span class="o">=</span> <span class="n">ccdspec_wave</span> <span class="o">&gt;</span> <span class="mi">5700</span>
+        <span class="n">tot_source_counts_blue</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nsource_cube</span><span class="p">[</span><span class="n">ind_blue</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nsky</span><span class="p">[</span><span class="n">ind_blue</span><span class="p">])</span> <span class="o">*</span> <span class="n">nspaxel_x</span> <span class="o">*</span> <span class="n">nspaxel_y</span>
+        <span class="n">tot_source_counts_red</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nsource_cube</span><span class="p">[</span><span class="n">ind_red</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nsky</span><span class="p">[</span><span class="n">ind_red</span><span class="p">])</span> <span class="o">*</span> <span class="n">nspaxel_x</span> <span class="o">*</span> <span class="n">nspaxel_y</span>
+        <span class="n">nstray_blue</span> <span class="o">=</span> <span class="n">tot_source_counts_blue</span> <span class="o">*</span> <span class="n">stray_frac</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4000</span> <span class="o">*</span> <span class="mi">2000</span><span class="p">)</span>
+        <span class="n">nstray_red</span> <span class="o">=</span> <span class="n">tot_source_counts_red</span> <span class="o">*</span> <span class="n">stray_frac</span> <span class="o">/</span> <span class="p">(</span><span class="mi">6000</span> <span class="o">*</span> <span class="mi">3000</span><span class="p">)</span>
+        <span class="n">nstray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">nw</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">nstray</span><span class="p">[</span><span class="n">ind_blue</span><span class="p">]</span> <span class="o">=</span> <span class="n">nstray_blue</span>
+        <span class="n">nstray</span><span class="p">[</span><span class="n">ind_red</span><span class="p">]</span> <span class="o">=</span> <span class="n">nstray_red</span>
+
+
+        <span class="c1"># make into 3d cube</span>
+        <span class="n">ndark_cube</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">ndark</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">))</span>
+        <span class="n">nreadout_cube</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">nreadout</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">))</span>
+        <span class="n">nsky_cube</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">nsky</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">))</span>
+        <span class="n">nstray_cube</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">nstray</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_y</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ccdspec_wave</span> <span class="o">=</span> <span class="n">ccdspec_wave</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ndark</span> <span class="o">=</span> <span class="n">ndark_cube</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nreadout</span> <span class="o">=</span> <span class="n">nreadout_cube</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nsky</span> <span class="o">=</span> <span class="n">nsky_cube</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nsource</span> <span class="o">=</span> <span class="n">nsource_cube</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nstray</span> <span class="o">=</span> <span class="n">nstray_cube</span>
+
+
+        <span class="c1"># consider the binning in x-axis</span>
+        <span class="k">if</span> <span class="n">instru</span><span class="p">[</span><span class="s1">&#39;readout_xbin&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ccdspec_wave_xbin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="n">ndark_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="n">nreadout_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="n">nsky_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="n">nstray_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">xbin</span> <span class="o">=</span> <span class="n">instru</span><span class="p">[</span><span class="s1">&#39;readout_xbin&#39;</span><span class="p">]</span>
+            <span class="k">while</span> <span class="n">i</span> <span class="o">+</span> <span class="n">xbin</span> <span class="o">&lt;</span> <span class="n">nw</span><span class="p">:</span>
+                <span class="n">ccdspec_wave_xbin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ccdspec_wave_xbin</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ccdspec_wave</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">xbin</span><span class="p">]))</span>
+                <span class="n">ndark_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ndark_bin</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ndark</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">xbin</span><span class="p">]))</span>
+                <span class="n">nreadout_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nreadout_bin</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">nreadout</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">xbin</span><span class="p">]))</span>
+                <span class="n">nsky_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nsky_bin</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nsky</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">xbin</span><span class="p">]))</span>
+                <span class="n">nstray_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nstray_bin</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nstray</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">xbin</span><span class="p">]))</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">xbin</span>
+
+            <span class="c1"># bin the source counts</span>
+            <span class="n">nw_bin</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ccdspec_wave_xbin</span><span class="p">)</span>
+            <span class="n">nsource_bin_cube</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nw_bin</span><span class="p">,</span> <span class="n">nspaxel_x</span><span class="p">,</span> <span class="n">nspaxel_y</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nw_bin</span><span class="p">):</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">xbin</span>
+                <span class="n">nsource_bin_cube</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nsource_cube</span><span class="p">[</span><span class="n">j</span><span class="p">:</span><span class="n">j</span> <span class="o">+</span> <span class="n">xbin</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1"># make into 3d cube (xbinning)</span>
+            <span class="n">ndark_bin_cube</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">ndark_bin</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">))</span>
+            <span class="n">nreadout_bin_cube</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">nreadout_bin</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">))</span>
+            <span class="n">nsky_bin_cube</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">nsky_bin</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">))</span>  <span class="c1"># e/s</span>
+            <span class="n">nstray_bin_cube</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">nstray_bin</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">nspaxel_y</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">ccdspec_wave</span> <span class="o">=</span> <span class="n">ccdspec_wave_xbin</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ndark</span> <span class="o">=</span> <span class="n">ndark_bin_cube</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nreadout</span> <span class="o">=</span> <span class="n">nreadout_bin_cube</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nsky</span> <span class="o">=</span> <span class="n">nsky_bin_cube</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nsource</span> <span class="o">=</span> <span class="n">nsource_bin_cube</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nstray</span> <span class="o">=</span> <span class="n">nstray_bin_cube</span></div>
+
+
+
+<div class="viewcode-block" id="calculation_snr"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.calculation_snr">[docs]</a><span class="k">class</span> <span class="nc">calculation_snr</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+
+        <span class="n">signal_rate</span> <span class="o">=</span> <span class="n">DetectorCountsRate</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">DetectorCounts</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">signal_rate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">nsource</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">darknoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">ndark</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readnoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">nreadout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skynoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">nsky</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sourcenoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">nsource</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">straynoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">nstray</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">saturate_mask</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">&gt;</span> <span class="mi">65535</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">totnoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">darknoise</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">readnoise</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">skynoise</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourcenoise</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">straynoise</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sysnoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">darknoise</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">readnoise</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">skynoise</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">straynoise</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">snr</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">nsource</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">totnoise</span>
+
+
+        <span class="c1"># model spectrum</span>
+        <span class="n">nw</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">nsource</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">ccdspec_wave</span>
+        <span class="n">template_fluxcube</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nw</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;configuration&#39;</span><span class="p">][</span><span class="s1">&#39;readout_xbin&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nx</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ny</span><span class="p">):</span>
+                    <span class="n">template_fluxcube</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span>
+                                                  <span class="n">signal_rate</span><span class="o">.</span><span class="n">ccdspec_wave</span><span class="p">,</span>
+                                                  <span class="n">signal_rate</span><span class="o">.</span><span class="n">fluxcube</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">template_fluxcube</span> <span class="o">=</span> <span class="n">signal_rate</span><span class="o">.</span><span class="n">fluxcube</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mockflux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">template_fluxcube</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">template_fluxcube</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">snr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mockerror</span> <span class="o">=</span> <span class="n">template_fluxcube</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">snr</span>
+
+        <span class="c1"># model image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img2d</span> <span class="o">=</span> <span class="n">signal_rate</span><span class="o">.</span><span class="n">mag2d</span>
+
+<div class="viewcode-block" id="calculation_snr.save"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.calculation_snr.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;darknoise&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">darknoise</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;readnoise&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">readnoise</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;skynoise&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">skynoise</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;sourcenoise&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sourcenoise</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;totnoise&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">totnoise</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;sysnoise&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sysnoise</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;straynoise&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">straynoise</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;snr&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">snr</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;saturate_mask&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">saturate_mask</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;mockwave&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;mockflux&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mockflux</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;mockerror&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mockerror</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;img2d&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">img2d</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="calculation_snr.plot"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.calculation_snr.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">report</span> <span class="o">=</span> <span class="bp">self</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">hspace</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span>
+                            <span class="n">left</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;jet_r&#39;</span><span class="p">)</span>
+
+        <span class="n">ax_recontructed_magmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax_recontructed_magmap</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img2d</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span>
+                                           <span class="n">cmap</span><span class="o">=</span><span class="n">cm</span><span class="p">,</span> <span class="n">picker</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax_recontructed_magmap</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;spaxel&#39;</span><span class="p">)</span>
+        <span class="n">ax_recontructed_magmap</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;spaxel&#39;</span><span class="p">)</span>
+        <span class="n">ax_recontructed_magmap</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;reconstructed magmap&#39;</span><span class="p">)</span>
+        <span class="n">cbar_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">cbar_ax</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;mag/arcsec$^</span><span class="si">{2}</span><span class="s1">$&#39;</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+
+        <span class="n">ax_recontructed_snr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span> <span class="o">-</span> <span class="mi">5000</span><span class="p">))</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax_recontructed_snr</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snr</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span>
+                                        <span class="n">cmap</span><span class="o">=</span><span class="n">cm</span><span class="p">,</span> <span class="n">picker</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax_recontructed_snr</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;spaxel&#39;</span><span class="p">)</span>
+        <span class="n">ax_recontructed_snr</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;spaxel&#39;</span><span class="p">)</span>
+        <span class="n">ax_recontructed_snr</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;reconstructed SNR@5000A&#39;</span><span class="p">)</span>
+        <span class="n">cbar_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.41</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">cbar_ax</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;SNR&#39;</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">15</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="mi">15</span>
+        <span class="n">ax_snr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax_snr</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snr</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s1">&#39;k-&#39;</span><span class="p">)</span>
+        <span class="n">ax_snr</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;surface brightness: </span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{:4.1f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img2d</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39; mag/arcsec$^</span><span class="si">{2}</span><span class="s1">$&#39;</span><span class="p">,</span>
+                        <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">)</span>
+        <span class="n">ax_snr</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;SNR@5000A: </span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{:4.1f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snr</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]),</span>
+                        <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.65</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">)</span>
+        <span class="n">ax_snr</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;x: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;, y: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">),</span>
+                        <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">)</span>
+        <span class="n">ax_snr</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;SNR&#39;</span><span class="p">)</span>
+        <span class="n">ax_snr</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;wavelength&#39;</span><span class="p">)</span>
+
+        <span class="n">ax_noises</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourcenoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;source_noise&#39;</span><span class="p">)</span>
+        <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">skynoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;sky_noise&#39;</span><span class="p">)</span>
+        <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">readnoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;readout_noise&#39;</span><span class="p">)</span>
+        <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">darknoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;dark_noise&#39;</span><span class="p">)</span>
+        <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">straynoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;stray_noise&#39;</span><span class="p">)</span>
+        <span class="n">ax_noises</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax_noises</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;noise counts (e-/s)&#39;</span><span class="p">)</span>
+
+        <span class="n">ax_recontructed_spec</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax_recontructed_spec</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mockflux</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;mockflux&#39;</span><span class="p">)</span>
+        <span class="n">ax_recontructed_spec</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mockerror</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;mockerr&#39;</span><span class="p">)</span>
+        <span class="n">ax_recontructed_spec</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;mock flux (erg/s/cm$^2$/A)&#39;</span><span class="p">)</span>
+        <span class="n">ax_recontructed_spec</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;wavelength&#39;</span><span class="p">)</span>
+
+
+        <span class="k">def</span> <span class="nf">onpick</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+
+            <span class="n">x</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">mouseevent</span><span class="o">.</span><span class="n">xdata</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">mouseevent</span><span class="o">.</span><span class="n">ydata</span>
+            <span class="c1"># print(&#39;show spec in x = &#39; + str(int(np.floor(x))) + &#39;, y = &#39;+ str(int(np.floor(y))))</span>
+
+            <span class="n">xind</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+            <span class="n">yind</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+
+            <span class="n">update</span><span class="p">(</span><span class="n">xind</span><span class="p">,</span> <span class="n">yind</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">xind</span><span class="p">,</span> <span class="n">yind</span><span class="p">):</span>
+
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">xind</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">yind</span>
+            <span class="n">ax_snr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ax_snr</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snr</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s1">&#39;k-&#39;</span><span class="p">)</span>
+            <span class="n">ax_snr</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;surface brightness: </span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{:4.1f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">img2d</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39; mag/arcsec$^</span><span class="si">{2}</span><span class="s1">$&#39;</span><span class="p">,</span>
+                            <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">)</span>
+            <span class="n">ax_snr</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;SNR@5000A: </span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">{:4.1f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snr</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]),</span>
+                            <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.65</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">)</span>
+            <span class="n">ax_snr</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;x: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;, y: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">),</span>
+                            <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">)</span>
+            <span class="n">ax_snr</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;SNR&#39;</span><span class="p">)</span>
+            <span class="n">ax_snr</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;wavelength&#39;</span><span class="p">)</span>
+
+            <span class="n">ax_noises</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sourcenoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;source_noise&#39;</span><span class="p">)</span>
+            <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">skynoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;sky_noise&#39;</span><span class="p">)</span>
+            <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">readnoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;readout_noise&#39;</span><span class="p">)</span>
+            <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">darknoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;dark_noise&#39;</span><span class="p">)</span>
+            <span class="n">ax_noises</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">straynoise</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;stray_noise&#39;</span><span class="p">)</span>
+            <span class="n">ax_noises</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">ax_noises</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;noise counts (e-/s)&#39;</span><span class="p">)</span>
+
+            <span class="n">ax_recontructed_spec</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot2grid</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">colspan</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">ax_recontructed_spec</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mockflux</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;mockflux&#39;</span><span class="p">)</span>
+            <span class="n">ax_recontructed_spec</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mockerror</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;mockerr&#39;</span><span class="p">)</span>
+            <span class="n">ax_recontructed_spec</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;mock flux (erg/s/cm$^2$/A)&#39;</span><span class="p">)</span>
+            <span class="n">ax_recontructed_spec</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;wavelength&#39;</span><span class="p">)</span>
+
+            <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">mpl_connect</span><span class="p">(</span><span class="s1">&#39;pick_event&#39;</span><span class="p">,</span> <span class="n">onpick</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="read_report"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.read_report">[docs]</a><span class="k">class</span> <span class="nc">read_report</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">darknoise</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;darknoise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readnoise</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;readnoise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skynoise</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;skynoise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sourcenoise</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;sourcenoise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">totnoise</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;totnoise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sysnoise</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;sysnoise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">straynoise</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;straynoise&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">snr</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;snr&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">saturate_mask</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;saturate_mask&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mockwave</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;mockwave&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mockflux</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;mockflux&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mockerror</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;mockerror&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img2d</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;img2d&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<span class="c1"># class calculation_limitmag(object):</span>
+<span class="c1">#</span>
+<span class="c1">#     def __init__(self, config):</span>
+<span class="c1">#</span>
+<span class="c1">#         instru = config[&#39;configuration&#39;]</span>
+<span class="c1">#         targetsnr = config[&#39;targetsnr&#39;]</span>
+<span class="c1">#</span>
+<span class="c1">#         ccdspec_wave = np.arange(3500, 10000, 1.75555)</span>
+<span class="c1">#         darkc = instru[&#39;dark&#39;]      # e/s/pix</span>
+<span class="c1">#         rn = instru[&#39;readout_noise&#39;]   # e/pix</span>
+<span class="c1">#         nsky = get_background(ccdspec_wave)</span>
+<span class="c1">#         repn = config[&#39;repn&#39;]</span>
+<span class="c1">#         obst = config[&#39;obst&#39;]</span>
+<span class="c1">#         npixw = 2</span>
+<span class="c1">#         specsampling = 1</span>
+<span class="c1">#</span>
+<span class="c1">#         coeff_s2 = (repn * obst) ** 2</span>
+<span class="c1">#         coeff_s1 = -targetsnr ** 2 * (repn * obst)</span>
+<span class="c1">#         coeff_s0 = -targetsnr ** 2 * (rn ** 2 * (repn * npixw * specsampling) +</span>
+<span class="c1">#                                 (darkc * repn * obst * npixw * specsampling) +</span>
+<span class="c1">#                                 (nsky * repn * obst))</span>
+<span class="c1">#</span>
+<span class="c1">#         source_rate = (-coeff_s1 + np.sqrt(coeff_s1 ** 2 - 4 * coeff_s2 * coeff_s0)) / (2 * coeff_s2)</span>
+<span class="c1">#</span>
+<span class="c1">#         throughtputwave, throughtputvalue = get_throughput(config)</span>
+<span class="c1">#         flux = electron2flux(config, ccdspec_wave, source_rate,</span>
+<span class="c1">#                              throughtputwave, throughtputvalue,</span>
+<span class="c1">#                              fluxunit=&#39;erg/s/cm^2/A&#39;)</span>
+<span class="c1">#</span>
+<span class="c1">#         filter = read_filter(config[&#39;scene&#39;][0][&#39;normalization&#39;][&#39;band&#39;])</span>
+<span class="c1">#         ind_filter = (ccdspec_wave &gt;= filter.wavemin) &amp; (ccdspec_wave &lt;= filter.wavemax)</span>
+<span class="c1">#         filter_wave = ccdspec_wave[ind_filter]</span>
+<span class="c1">#         filter_flux = np.interp(filter_wave, filter.wave, filter.throughput)</span>
+<span class="c1">#         self.limitmag = filter_mag(ccdspec_wave, flux, filter_wave, filter_flux, output=&#39;mag&#39;)</span>
+
+
+
+<div class="viewcode-block" id="perform_calculation"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.perform_calculation.html#ifs_etc.etc2d.perform_calculation.perform_calculation">[docs]</a><span class="k">def</span> <span class="nf">perform_calculation</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+
+
+    <span class="n">calculation_mode</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;calc_mode&#39;</span><span class="p">][</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">calculation_mode</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>       <span class="c1"># known the target SNR, calculate the needed time.</span>
+
+        <span class="c1"># report = calculation_exptime(config)</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;This calc_mode is under development. Return none.&#39;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">calculation_mode</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>     <span class="c1"># known the exposure time, calculate the reached SNR.</span>
+
+        <span class="n">report</span> <span class="o">=</span> <span class="n">calculation_snr</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="c1"># elif calculation_mode == &#39;snr2limitmag&#39;:</span>
+    <span class="c1">#</span>
+    <span class="c1">#     report = calculation_limitmag(config)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="n">report</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;This calc_mode is not defined. &#39;</span><span class="p">)</span>
+
+
+
+    <span class="k">return</span> <span class="n">report</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, ifs_etc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

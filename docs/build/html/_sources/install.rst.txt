@@ -1,0 +1,14 @@
+Install
+=======
+
+
+Installation
+------------
+
+To use ifs_etc, first install it using pip:
+
+.. code-block:: console
+
+   $ pip install ifs_etc
+
+

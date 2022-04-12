@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quickstart &mdash; ifs_etc 0.0.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Reference Data" href="ref_data.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> ifs_etc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#etc2d">etc2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#etc1d">etc1d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ref_data.html">Reference Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config_dict.html">Configuation Dictionary Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backgrounds.html">Backgrounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inst_throughputs.html">Instrument Throughputs</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/ifs_etc.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ifs_etc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Quickstart</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="quickstart">
+<h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline"></a></h1>
+<div class="section" id="etc2d">
+<h2>etc2d<a class="headerlink" href="#etc2d" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p>Creating a default configuration dictionaray and editing the configuration:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">from ifs_etc.etc2d.ifs_etc import build_input_para</span>
+<span class="go">config = build_input_para()</span>
+
+<span class="gp">#</span><span class="c1">#####################################################</span>
+<span class="gp">#          </span>IFS Exposure Time Calculator              <span class="c1">#</span>
+<span class="gp"># </span><span class="o">(</span>Use default value when press enter and no input<span class="o">)</span>  <span class="c1">#</span>
+<span class="gp">#</span><span class="c1">#####################################################</span>
+<span class="gp">#</span>
+<span class="gp"># </span><span class="m">1</span>. Spectral Resolution: <span class="m">3</span>.5 Angstrom per <span class="m">2</span> pixels <span class="o">(</span>fixed<span class="o">)</span>
+<span class="gp">#    </span>Spectral coverage: <span class="m">3500</span>-10000 A
+<span class="gp">#</span>
+<span class="gp"># </span><span class="m">2</span>. CCD parameters:
+<span class="gp">#     </span><span class="m">1</span>. Dispersion axis binning: <span class="m">1</span> pixel
+<span class="gp">#     </span><span class="m">2</span>. Spatial axis binning: <span class="m">1</span> pixel
+<span class="gp">#     </span><span class="m">3</span>. Gain: <span class="m">1</span> e-/ADU
+<span class="gp">#     </span><span class="m">4</span>. Dark: <span class="m">0</span>.017 e-/s/pixel
+<span class="go">Reset the parameters or use the default value? (r|d): d</span>
+<span class="gp"># </span>Use the default CCD parameters.
+<span class="gp">#</span>
+<span class="gp"># </span><span class="m">3</span>. Specify the calculation mode:
+<span class="gp">#     </span><span class="m">1</span>. How many visits needed to obtain a certain SNR.
+<span class="gp">#     </span><span class="m">2</span>. SNR reached <span class="k">in</span> certain visits.
+<span class="gp">#     </span><span class="o">(</span>Set the exposure <span class="nb">time</span> <span class="o">=</span> <span class="m">300</span> seconds per visit.<span class="o">)</span>
+<span class="go">which calculation mode (default = 1): 1</span>
+<span class="go">The target SNR is (default = 20): 20</span>
+<span class="gp"># </span>Calculate the visits to obtain <span class="nv">SNR</span> <span class="o">=</span> <span class="m">20</span>.0.
+<span class="gp">#</span>
+<span class="gp"># </span><span class="m">4</span>. Define the <span class="nb">source</span> <span class="o">(</span>position, shape, spectrum, brightness<span class="o">)</span>.
+<span class="go">How many sources to be considered (default = 1): 1</span>
+<span class="gp"># </span>Set the parameters <span class="k">for</span> each source.
+<span class="gp"># </span><span class="m">4</span>. <span class="o">(</span><span class="m">1</span>/5<span class="o">)</span> Select the <span class="nb">source</span> <span class="nb">type</span> <span class="k">for</span> source-1:
+<span class="gp">#    </span><span class="m">1</span>. point <span class="nb">source</span>
+<span class="gp">#    </span><span class="m">2</span>. extended <span class="nb">source</span>
+<span class="go">Enter the index (default = 1): 1</span>
+<span class="gp"># </span><span class="m">4</span>. <span class="o">(</span><span class="m">2</span>/5<span class="o">)</span> Set the center position <span class="k">for</span> source-1:
+<span class="go">Enter the x-offset [arcsec] (default = 0.0): 0.2</span>
+<span class="go">Enter the y-offset [arcsec] (default = 0.0): 0.2</span>
+<span class="gp"># </span><span class="m">4</span>. <span class="o">(</span><span class="m">3</span>/5<span class="o">)</span> Point <span class="nb">source</span> is <span class="nb">set</span> to have PSF shape with <span class="nv">FWHM</span> <span class="o">=</span> <span class="m">0</span>.2<span class="s2">&quot;.</span>
+<span class="gp"># </span><span class="s2">4. (4/5) Choose a spectrum for the source-1:</span>
+<span class="gp">#    </span><span class="s2">1. Elliptical galaxy (bc03_FeH0_tau1_Ewd)</span>
+<span class="gp">#    </span><span class="s2">2. Spiral galaxy (bc03_FeH0_tau5_Ew5)</span>
+<span class="gp">#    </span><span class="s2">3. Starburst galaxy (bc03_FeH-2_tau10_Ew50)</span>
+<span class="gp">#    </span><span class="s2">4. AGN (FeH0_tau5_Ew10_AGN)</span>
+<span class="gp">#    </span><span class="s2">5. upload spectrum file [text format only, with two-columns: wavelength in A and flux in erg/s/cm^2/A]</span>
+<span class="go">Enter the choise (default = 1): 1</span>
+<span class="go">Enter the redshift (default = 0.0): 0.0</span>
+<span class="go">Enter the E(B-V) (default = 0.0): 0.1</span>
+<span class="gp"># </span><span class="m">4</span>. <span class="o">(</span><span class="m">5</span>/5<span class="o">)</span> Select the normalization <span class="nb">type</span> <span class="k">for</span> source-1:
+<span class="gp">#    </span><span class="m">1</span>. Normalized at certain wavelength.
+<span class="gp">#    </span><span class="m">2</span>. Normalized at certain filter.
+<span class="go">Select the normalization type (default = 2): 2</span>
+<span class="gp"># </span>Filters: <span class="m">1</span>. sdss-u, <span class="m">2</span>. sdss-g, <span class="m">3</span>. sdss-r, <span class="m">4</span>. sdss-i, <span class="m">5</span>. sdss-z.
+<span class="go">Select the normalized filter (default = 2): 2</span>
+<span class="gp"># </span>Normalization unit: <span class="o">[</span>add arcsec^-2 <span class="k">for</span> extended source<span class="o">]</span>.
+<span class="gp">#    </span><span class="m">1</span>. AB magnitude
+<span class="gp">#    </span><span class="m">2</span>. erg/s/cm^2/A
+<span class="gp">#    </span><span class="m">3</span>. erg/s/cm^2/Hz
+<span class="go">Select the normalization unit (default = 1): 1</span>
+<span class="go">Enter the normalization value (default = 17.7): 17.7</span>
+<span class="gp">#</span>
+<span class="gp"># </span><span class="m">5</span>. Specify the background level:
+<span class="gp"># </span>Zodiacal level: <span class="m">1</span>. low, <span class="m">2</span>. median, <span class="m">3</span>. high.
+<span class="go">Enter the choice (default = 2): 2</span>
+<span class="gp"># </span>Earth shine level: <span class="m">1</span>. low, <span class="m">2</span>. median, <span class="m">3</span>. high.
+<span class="go">Enter the choice (default = 2): 2</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Performing the calculation:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">from ifs_etc.etc2d.perform_calculation import perform_calculation</span>
+<span class="go">report = perform_calculation(config)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="etc1d">
+<h2>etc1d<a class="headerlink" href="#etc1d" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p>Creating a default configuration dictionaray:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">from ifs_etc.etc1d.config import build_default_calc</span>
+<span class="go">config = build_default_calc()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Editing the configuration:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># changing the spectrum of the source</span>
+<span class="n">config</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">][</span><span class="s1">&#39;spectrum&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;SFgal_texp_FeH0_tau5_Ew10_AGN1.fits&#39;</span>
+
+<span class="c1"># changing the surface brightness of the source</span>
+<span class="n">config</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">][</span><span class="s1">&#39;normalization&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">17.7</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Running the code:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">from ifs_etc.etc1d.perform_calculation import perform_calculation</span>
+<span class="go">report = perform_calculation(calculation)</span>
+</pre></div>
+</div>
+<ul>
+<li><p>The output results:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">report.__dict__</span></code> lists all the information in the result</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">report['snr']</span></code> contains the signal-to-noise ratio generated by the calculation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">report['readnoise]</span></code>, <code class="docutils literal notranslate"><span class="pre">report['darknoise']</span></code>, <code class="docutils literal notranslate"><span class="pre">report['sourcenoise']</span></code> contain different types of noise.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">report['mockwave']</span></code>, <code class="docutils literal notranslate"><span class="pre">report['mockflux']</span></code>, <code class="docutils literal notranslate"><span class="pre">report['mockerror']</span></code> provide the mock spectrum of the observation</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p>S/N ratio reached in a exposure time of 900 seconds for an extended source with sdss g-band surface brightness of 18 mag/arcsec2 and AGN spectrum</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">from ifs_etc.etc1d.config import build_default_calc</span>
+<span class="go">from ifs_etc.etc1d.perform_calculation import perform_calculation</span>
+
+<span class="go">config = build_default_calc()</span>
+<span class="go">config[&#39;obst&#39;] = 300</span>
+<span class="go">config[&#39;repn&#39;] = 3</span>
+<span class="go">config[&#39;source&#39;][&#39;normalization&#39;][&#39;value&#39;] = 18.0</span>
+<span class="go">config[&#39;source&#39;][&#39;spectrum&#39;][&#39;name&#39;] = &#39;SFgal_texp_FeH0_tau5_Ew10_AGN1.fits&#39;</span>
+<span class="go">report = perform_calculation(config)</span>
+<span class="go">print(report.snr)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Exposure time needed to obtain a S/N ratio of 10 for an elliptical galaxy with SDSS r-band surface brightness of 18 mag/arcsec2</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">from ifs_etc.etc1d.config import build_default_calc</span>
+<span class="go">from ifs_etc.etc1d.perform_calculation import perform_calculation</span>
+
+<span class="go">config = build_default_calc()</span>
+<span class="go">config[&#39;targetsnr&#39;] = 10</span>
+<span class="go">config[&#39;obst&#39;] = 300</span>
+<span class="go">config[&#39;source&#39;][&#39;normalization&#39;][&#39;value&#39;] = 18.0</span>
+<span class="go">config[&#39;source&#39;][&#39;spectrum&#39;][&#39;name&#39;] = &#39;SFgal_texp_FeH0_tau1_Ewd.fits&#39;</span>
+<span class="go">report = perform_calculation(config, calculation_mode=&#39;snr2exptime&#39;)</span>
+<span class="go">print(report.exptime)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ref_data.html" class="btn btn-neutral float-right" title="Reference Data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, ifs_etc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

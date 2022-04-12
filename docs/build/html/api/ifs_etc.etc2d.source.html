@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>source module &mdash; ifs_etc 0.0.3 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="perform_calculation module" href="ifs_etc.etc2d.perform_calculation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> ifs_etc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ifs_etc.html">Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ifs_etc.etc2d.html">etc2d module</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ifs_etc.etc2d.config.html">config</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ifs_etc.etc2d.perform_calculation.html">perform_calculation module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">source module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ifs_etc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="ifs_etc.html">ifs_etc package</a> &raquo;</li>
+          <li><a href="ifs_etc.etc2d.html">etc2d module</a> &raquo;</li>
+      <li>source module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/ifs_etc.etc2d.source.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-ifs_etc.etc2d.source">
+<span id="source-module"></span><h1>source module<a class="headerlink" href="#module-ifs_etc.etc2d.source" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ifs_etc.etc2d.source.</span></span><span class="sig-name descname"><span class="pre">Grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ifs_etc/etc2d/source.html#Grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ifs_etc.etc2d.source.Grid" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generate the xy-grid of the IFU FOV under the instrument configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> – </p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid.dx">
+<span class="sig-name descname"><span class="pre">dx</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.Grid.dx" title="Permalink to this definition"></a></dt>
+<dd><p>spaxel size in x-direction, unit as arcsec</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid.dy">
+<span class="sig-name descname"><span class="pre">dy</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.Grid.dy" title="Permalink to this definition"></a></dt>
+<dd><p>spaxel size in y-direction, unit as arcsec</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid.nx">
+<span class="sig-name descname"><span class="pre">nx</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.Grid.nx" title="Permalink to this definition"></a></dt>
+<dd><p>the number of elements in xarr</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid.ny">
+<span class="sig-name descname"><span class="pre">ny</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.Grid.ny" title="Permalink to this definition"></a></dt>
+<dd><p>the number of elements in yarr</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid.spaxel_area">
+<span class="sig-name descname"><span class="pre">spaxel_area</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.Grid.spaxel_area" title="Permalink to this definition"></a></dt>
+<dd><p>dx * dy, unit as arcsec^2</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid.xarr">
+<span class="sig-name descname"><span class="pre">xarr</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.Grid.xarr" title="Permalink to this definition"></a></dt>
+<dd><p>x-array, unit as integer numbers of 0.2 arcsec</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid.yarr">
+<span class="sig-name descname"><span class="pre">yarr</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.Grid.yarr" title="Permalink to this definition"></a></dt>
+<dd><p>y-array, unit as integer numbers of 0.2 arcsec</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid.x2d">
+<span class="sig-name descname"><span class="pre">x2d</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.Grid.x2d" title="Permalink to this definition"></a></dt>
+<dd><p>2d array in x, unit as integer numbers of 0.2 arcsec</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.Grid.y2d">
+<span class="sig-name descname"><span class="pre">y2d</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.Grid.y2d" title="Permalink to this definition"></a></dt>
+<dd><p>2d array in y, unit as integer numbers of 0.2 arcsec</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.ModelCube">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ifs_etc.etc2d.source.</span></span><span class="sig-name descname"><span class="pre">ModelCube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ifs_etc/etc2d/source.html#ModelCube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ifs_etc.etc2d.source.ModelCube" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.filter_mag">
+<span class="sig-prename descclassname"><span class="pre">ifs_etc.etc2d.source.</span></span><span class="sig-name descname"><span class="pre">filter_mag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objwave</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objflux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filterwave</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filterthroughtput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mag'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ifs_etc/etc2d/source.html#filter_mag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ifs_etc.etc2d.source.filter_mag" title="Permalink to this definition"></a></dt>
+<dd><p>Get AB magnitude in a certain filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objwave</strong> – unit as A</p></li>
+<li><p><strong>objflux</strong> – unit as erg/s/cm^2/A</p></li>
+<li><p><strong>filterwave</strong> – unit as A</p></li>
+<li><p><strong>filterthroughtput</strong> – unit as detector signal per photon (use vaccum_pass for space telescope,
+otherwise select a given airmass)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>AB magnitude in this band</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.get_wavearr">
+<span class="sig-prename descclassname"><span class="pre">ifs_etc.etc2d.source.</span></span><span class="sig-name descname"><span class="pre">get_wavearr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ifs_etc/etc2d/source.html#get_wavearr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ifs_etc.etc2d.source.get_wavearr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.normalized">
+<span class="sig-prename descclassname"><span class="pre">ifs_etc.etc2d.source.</span></span><span class="sig-name descname"><span class="pre">normalized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">template_wave</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_flux</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ifs_etc/etc2d/source.html#normalized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ifs_etc.etc2d.source.normalized" title="Permalink to this definition"></a></dt>
+<dd><p>Scale the spectrum template to the given value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>template_wave</strong> – unit in A</p></li>
+<li><p><strong>template_flux</strong> – unit in erg/s/cm^2/A</p></li>
+<li><p><strong>config</strong> – the normalization dict: {‘value’, ‘unit’, ‘band’ or ‘wavelength’}
+the geometry info to generate the 2D surface brightness map</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the scaled spectrum cube.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.read_filter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ifs_etc.etc2d.source.</span></span><span class="sig-name descname"><span class="pre">read_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ifs_etc/etc2d/source.html#read_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ifs_etc.etc2d.source.read_filter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.read_template">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ifs_etc.etc2d.source.</span></span><span class="sig-name descname"><span class="pre">read_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">isource</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ifs_etc/etc2d/source.html#read_template"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ifs_etc.etc2d.source.read_template" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>get spectrum template using the input parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>isource</strong> (<em>dict</em><em>, </em><em>including 3 keys</em>) – <dl class="simple">
+<dt>name:</dt><dd><p>the spectrum filename</p>
+</dd>
+<dt>redshift:</dt><dd><p>the redshift applied to the template</p>
+</dd>
+<dt>ebv:</dt><dd><p>the extinction applied to the template</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.read_template.wave">
+<span class="sig-name descname"><span class="pre">wave</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.read_template.wave" title="Permalink to this definition"></a></dt>
+<dd><p>the wavelength of the spectrum, redshift applied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><cite>numpy.ndarray</cite>, unit in Angstrom</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ifs_etc.etc2d.source.read_template.flux">
+<span class="sig-name descname"><span class="pre">flux</span></span><a class="headerlink" href="#ifs_etc.etc2d.source.read_template.flux" title="Permalink to this definition"></a></dt>
+<dd><p>the flux of the spectrum, redshift and extinction considered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><cite>numpy.ndarray</cite>, unit in erg/s/cm^2/A</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ifs_etc.etc2d.perform_calculation.html" class="btn btn-neutral float-left" title="perform_calculation module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, ifs_etc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

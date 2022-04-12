@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ifs_etc.etc2d.source &mdash; ifs_etc 0.0.3 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> ifs_etc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/ifs_etc.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">ifs_etc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>ifs_etc.etc2d.source</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ifs_etc.etc2d.source</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">astropy.io.fits</span> <span class="k">as</span> <span class="nn">fits</span>
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">simps</span>
+<span class="kn">from</span> <span class="nn">einops</span> <span class="kn">import</span> <span class="n">repeat</span>
+<span class="kn">import</span> <span class="nn">extinction</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+<span class="kn">from</span> <span class="nn">astropy.modeling.models</span> <span class="kn">import</span> <span class="n">Sersic2D</span><span class="p">,</span> <span class="n">Box2D</span><span class="p">,</span> <span class="n">Gaussian2D</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
+<span class="n">snpp_refdata</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;refdata/&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="read_template"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.source.html#ifs_etc.etc2d.source.read_template">[docs]</a><span class="k">class</span> <span class="nc">read_template</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    get spectrum template using the input parameters</span>
+
+<span class="sd">    .. todo::</span>
+<span class="sd">        enable to add emission lines</span>
+
+
+<span class="sd">    Args:</span>
+<span class="sd">        isource (dict, including 3 keys):</span>
+<span class="sd">            name:</span>
+<span class="sd">                the spectrum filename</span>
+<span class="sd">            redshift:</span>
+<span class="sd">                the redshift applied to the template</span>
+<span class="sd">            ebv:</span>
+<span class="sd">                the extinction applied to the template</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        wave (`numpy.ndarray`, unit in Angstrom):</span>
+<span class="sd">            the wavelength of the spectrum, redshift applied.</span>
+<span class="sd">        flux (`numpy.ndarray`, unit in erg/s/cm^2/A)</span>
+<span class="sd">            the flux of the spectrum, redshift and extinction considered.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">isource</span><span class="p">):</span>
+
+        <span class="c1"># self.source = isource</span>
+        <span class="c1"># self.line_definitions = self.source[&#39;lines&#39;]</span>
+
+        <span class="c1"># snpp_path = &#39;/Users/linlin/Pro/snpp_v1_05/refdata/&#39;</span>
+        <span class="c1"># template_filename = snpp_refdata + &#39;sed/&#39; + self.source[&#39;name&#39;]</span>
+        <span class="c1"># filtera = snpp_path + &#39;normalization/filters/sdss_g0.par&#39;</span>
+        <span class="c1"># result = input_mag_model(self.source[&#39;normalization&#39;][&#39;value&#39;],</span>
+        <span class="c1">#                          galtpl, filtera)  # scale the template to given brightness</span>
+
+        <span class="n">template_filename</span> <span class="o">=</span> <span class="n">isource</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">template_redshift</span> <span class="o">=</span> <span class="n">isource</span><span class="p">[</span><span class="s1">&#39;redshift&#39;</span><span class="p">]</span>
+        <span class="n">template_ebv</span> <span class="o">=</span> <span class="n">isource</span><span class="p">[</span><span class="s1">&#39;ebv&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">template_filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.fits&#39;</span><span class="p">):</span>
+
+            <span class="n">hdu</span> <span class="o">=</span> <span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">template_filename</span><span class="p">)</span>
+            <span class="n">template_wave</span> <span class="o">=</span> <span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;wavelength&#39;</span><span class="p">]</span>   <span class="c1"># A</span>
+            <span class="n">template_flux</span> <span class="o">=</span> <span class="n">hdu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;flux&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1e-12</span>         <span class="c1"># erg/s/A/cm2</span>
+
+            <span class="c1"># If the data is big endian, swap the byte order to make it little endian</span>
+            <span class="k">if</span> <span class="n">template_wave</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">byteorder</span> <span class="o">==</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">:</span>
+                <span class="n">template_wave</span> <span class="o">=</span> <span class="n">template_wave</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">template_filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.txt&#39;</span><span class="p">):</span>
+
+            <span class="n">cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">template_filename</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">template_wave</span> <span class="o">=</span> <span class="n">cat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>      <span class="c1"># unit should be in Angstrom</span>
+            <span class="n">template_flux</span> <span class="o">=</span> <span class="n">cat</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>      <span class="c1"># unit should be in erg/s/cm^2/A</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;File name need to be ended with &#39;.fits&#39; or &#39;.txt&#39;. &quot;</span><span class="p">)</span>
+
+        <span class="c1"># extinction require the dtype should be double.</span>
+        <span class="n">template_wave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">template_wave</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+
+        <span class="c1"># extinction correction</span>
+        <span class="c1"># assuming Calzetti-00 extinction law.</span>
+        <span class="n">r_v</span> <span class="o">=</span> <span class="mf">4.5</span>
+        <span class="n">extinction_mag</span> <span class="o">=</span> <span class="n">extinction</span><span class="o">.</span><span class="n">calzetti00</span><span class="p">(</span><span class="n">template_wave</span><span class="p">,</span>
+                                               <span class="n">template_ebv</span> <span class="o">*</span> <span class="n">r_v</span><span class="p">,</span>
+                                               <span class="n">r_v</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;aa&#39;</span><span class="p">)</span>
+        <span class="n">template_flux</span> <span class="o">=</span> <span class="n">extinction</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">extinction_mag</span><span class="p">,</span> <span class="n">template_flux</span><span class="p">)</span>
+
+        <span class="c1"># redshift correction</span>
+        <span class="n">template_wave</span> <span class="o">=</span> <span class="n">template_wave</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">template_redshift</span><span class="p">)</span>
+        <span class="n">template_flux</span> <span class="o">=</span> <span class="n">template_flux</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">template_flux</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">wave</span> <span class="o">=</span> <span class="n">template_wave</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flux</span> <span class="o">=</span> <span class="n">template_flux</span></div>
+
+
+<div class="viewcode-block" id="Grid"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.source.html#ifs_etc.etc2d.source.Grid">[docs]</a><span class="k">class</span> <span class="nc">Grid</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate the xy-grid of the IFU FOV under the instrument configuration.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        config</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        dx:</span>
+<span class="sd">            spaxel size in x-direction, unit as arcsec</span>
+<span class="sd">        dy:</span>
+<span class="sd">            spaxel size in y-direction, unit as arcsec</span>
+<span class="sd">        nx:</span>
+<span class="sd">            the number of elements in xarr</span>
+<span class="sd">        ny:</span>
+<span class="sd">            the number of elements in yarr</span>
+<span class="sd">        spaxel_area:</span>
+<span class="sd">            dx * dy, unit as arcsec^2</span>
+<span class="sd">        xarr:</span>
+<span class="sd">            x-array, unit as integer numbers of 0.2 arcsec</span>
+<span class="sd">        yarr:</span>
+<span class="sd">            y-array, unit as integer numbers of 0.2 arcsec</span>
+<span class="sd">        x2d:</span>
+<span class="sd">            2d array in x, unit as integer numbers of 0.2 arcsec</span>
+<span class="sd">        y2d:</span>
+<span class="sd">            2d array in y, unit as integer numbers of 0.2 arcsec</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;configuration&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;spaxel_xsize&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;spaxel_ysize&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;fov_xsize&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ny</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;fov_ysize&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spaxel_area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy</span>
+
+        <span class="c1"># in arcsec</span>
+        <span class="c1"># self.xarr = np.arange(0, self.config[&#39;fov_xsize&#39;], self.dx)</span>
+        <span class="c1"># self.yarr = np.arange(0, self.config[&#39;fov_ysize&#39;], self.dy)</span>
+        <span class="c1"># self.x2d, self.y2d = np.meshgrid(self.xarr, self.yarr)</span>
+
+        <span class="c1"># in spaxel in 0.2 step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xarr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx</span> <span class="o">/</span> <span class="mf">0.2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yarr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy</span> <span class="o">/</span> <span class="mf">0.2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x2d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xarr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yarr</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_wavearr"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.source.html#ifs_etc.etc2d.source.get_wavearr">[docs]</a><span class="k">def</span> <span class="nf">get_wavearr</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
+
+    <span class="n">instr_par</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;configuration&#39;</span><span class="p">]</span>
+    <span class="n">wave_start</span> <span class="o">=</span> <span class="n">instr_par</span><span class="p">[</span><span class="s1">&#39;wave_start&#39;</span><span class="p">]</span>
+    <span class="n">wave_end</span> <span class="o">=</span> <span class="n">instr_par</span><span class="p">[</span><span class="s1">&#39;wave_end&#39;</span><span class="p">]</span>
+    <span class="n">wave_delta</span> <span class="o">=</span> <span class="n">instr_par</span><span class="p">[</span><span class="s1">&#39;ccd_xsize&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">instr_par</span><span class="p">[</span><span class="s1">&#39;readout_xbin&#39;</span><span class="p">]</span>
+
+    <span class="n">ccdspec_wave</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">wave_start</span><span class="p">,</span> <span class="n">wave_end</span><span class="p">,</span> <span class="n">wave_delta</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ccdspec_wave</span></div>
+
+
+<div class="viewcode-block" id="read_filter"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.source.html#ifs_etc.etc2d.source.read_filter">[docs]</a><span class="k">class</span> <span class="nc">read_filter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filter_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filter_name:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">filter_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">snpp_refdata</span><span class="p">,</span> <span class="s1">&#39;normalization&#39;</span><span class="p">,</span> <span class="s1">&#39;filters&#39;</span><span class="p">,</span> <span class="n">filter_name</span><span class="o">+</span><span class="s1">&#39;.par&#39;</span><span class="p">)</span>
+        <span class="n">band</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filter_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wave</span> <span class="o">=</span> <span class="n">band</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>  <span class="c1"># A</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">throughput</span> <span class="o">=</span> <span class="n">band</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>  <span class="c1"># vaccum_pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wavemin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wave</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wavemax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wave</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># find the central wavelength, effective wavelength, and FWHM of the given filter</span>
+        <span class="n">filtermid</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wavemax</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">wavemin</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span>  <span class="c1"># A, central wavelength</span>
+        <span class="n">dwave</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wave</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">wave</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">waveeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">dwave</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">wave</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">throughput</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> \
+                       <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">dwave</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">throughput</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                                                                            <span class="c1"># A, effective wavelength</span>
+        <span class="n">rmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">throughput</span><span class="p">)</span>
+        <span class="n">nnn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">throughput</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">rmax</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FWHMmin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wave</span><span class="p">[</span><span class="n">nnn</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>      <span class="c1"># wave range at FWHM</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FWHMmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wave</span><span class="p">[</span><span class="n">nnn</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wavefwhm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">FWHMmax</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">FWHMmin</span>  <span class="c1"># A, FWHM</span></div>
+
+
+<div class="viewcode-block" id="filter_mag"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.source.html#ifs_etc.etc2d.source.filter_mag">[docs]</a><span class="k">def</span> <span class="nf">filter_mag</span><span class="p">(</span><span class="n">objwave</span><span class="p">,</span> <span class="n">objflux</span><span class="p">,</span> <span class="n">filterwave</span><span class="p">,</span> <span class="n">filterthroughtput</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;mag&#39;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get AB magnitude in a certain filter.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        objwave: unit as A</span>
+<span class="sd">        objflux: unit as erg/s/cm^2/A</span>
+<span class="sd">        filterwave: unit as A</span>
+<span class="sd">        filterthroughtput: unit as detector signal per photon (use vaccum_pass for space telescope,</span>
+<span class="sd">                              otherwise select a given airmass)</span>
+<span class="sd">                            </span>
+<span class="sd">    Return:</span>
+<span class="sd">        AB magnitude in this band</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># resample the throughtput to objwave</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="p">(</span><span class="n">objwave</span> <span class="o">&gt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">filterwave</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">objwave</span> <span class="o">&lt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">filterwave</span><span class="p">))</span>
+    <span class="n">wavetmp</span> <span class="o">=</span> <span class="n">objwave</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+    <span class="n">phot_frac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">wavetmp</span><span class="p">,</span> <span class="n">filterwave</span><span class="p">,</span> <span class="n">filterthroughtput</span><span class="p">)</span>  <span class="c1"># phot fraction (/s/A/cm^2?)</span>
+    <span class="c1"># convert to energy fraction</span>
+    <span class="c1"># E_frac = E0/hv * N_frac / E0 ~ N_frac/nu ~ N_frac * lambda</span>
+    <span class="n">energy_frac</span> <span class="o">=</span> <span class="n">phot_frac</span> <span class="o">*</span> <span class="n">wavetmp</span>  <span class="c1"># convert to energy fraction</span>
+
+    <span class="c1"># convert the objflux to erg/s/cm^2/Hz</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mf">3e18</span>    <span class="c1"># A/s</span>
+    <span class="n">objflux_hz</span> <span class="o">=</span> <span class="n">objflux</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">objwave</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">c</span>    <span class="c1"># erg/s/scm^2/Hz</span>
+
+    <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">simps</span>
+    <span class="n">integrate_flux</span> <span class="o">=</span> <span class="n">simps</span><span class="p">(</span><span class="n">objflux_hz</span> <span class="o">*</span> <span class="n">energy_frac</span><span class="p">,</span> <span class="n">c</span><span class="o">/</span><span class="n">wavetmp</span><span class="p">)</span> <span class="o">/</span> <span class="n">simps</span><span class="p">(</span><span class="n">energy_frac</span><span class="p">,</span> <span class="n">c</span><span class="o">/</span><span class="n">wavetmp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;mag&#39;</span><span class="p">:</span>
+        <span class="n">mag</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">integrate_flux</span><span class="p">)</span> <span class="o">-</span> <span class="mf">48.6</span>
+        <span class="k">return</span> <span class="n">mag</span>
+    <span class="k">elif</span> <span class="n">output</span> <span class="o">==</span> <span class="s1">&#39;flux&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">integrate_flux</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error: output need to be &quot;mag&quot; or &quot;flux&quot;. &#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span></div>
+
+
+<div class="viewcode-block" id="normalized"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.source.html#ifs_etc.etc2d.source.normalized">[docs]</a><span class="k">def</span> <span class="nf">normalized</span><span class="p">(</span><span class="n">template_wave</span><span class="p">,</span> <span class="n">template_flux</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Scale the spectrum template to the given value.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        template_wave:</span>
+<span class="sd">            unit in A</span>
+<span class="sd">        template_flux:</span>
+<span class="sd">            unit in erg/s/cm^2/A</span>
+<span class="sd">        config:</span>
+<span class="sd">            the normalization dict: {&#39;value&#39;, &#39;unit&#39;, &#39;band&#39; or &#39;wavelength&#39;}</span>
+<span class="sd">            the geometry info to generate the 2D surface brightness map</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the scaled spectrum cube.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">Grid</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="n">source</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span>
+    <span class="n">n_source</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="n">cube_flux</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_source</span><span class="p">):</span>
+
+        <span class="n">inormalize</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;normalization&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s1">&#39;band&#39;</span> <span class="ow">in</span> <span class="n">inormalize</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+            <span class="c1"># normlized at certain filter</span>
+            <span class="nb">filter</span> <span class="o">=</span> <span class="n">read_filter</span><span class="p">(</span><span class="n">inormalize</span><span class="p">[</span><span class="s1">&#39;band&#39;</span><span class="p">])</span>
+            <span class="n">normalized_wave</span> <span class="o">=</span> <span class="nb">filter</span><span class="o">.</span><span class="n">waveeff</span>
+            <span class="n">ind_filter</span> <span class="o">=</span> <span class="p">(</span><span class="n">template_wave</span> <span class="o">&gt;=</span> <span class="nb">filter</span><span class="o">.</span><span class="n">wavemin</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">template_wave</span> <span class="o">&lt;=</span> <span class="nb">filter</span><span class="o">.</span><span class="n">wavemax</span><span class="p">)</span>
+            <span class="n">filter_wave</span> <span class="o">=</span> <span class="n">template_wave</span><span class="p">[</span><span class="n">ind_filter</span><span class="p">]</span>
+            <span class="n">filter_flux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">filter_wave</span><span class="p">,</span> <span class="nb">filter</span><span class="o">.</span><span class="n">wave</span><span class="p">,</span> <span class="nb">filter</span><span class="o">.</span><span class="n">throughput</span><span class="p">)</span>
+            <span class="n">filter_constant</span> <span class="o">=</span> <span class="n">simps</span><span class="p">(</span><span class="n">filter_flux</span> <span class="o">*</span> <span class="n">filter_wave</span><span class="p">,</span> <span class="n">filter_wave</span><span class="p">)</span>
+
+            <span class="n">template_constant</span> <span class="o">=</span> <span class="n">simps</span><span class="p">(</span><span class="n">filter_flux</span> <span class="o">*</span> <span class="n">template_wave</span><span class="p">[</span><span class="n">ind_filter</span><span class="p">]</span> <span class="o">*</span> <span class="n">template_flux</span><span class="p">[</span><span class="n">ind_filter</span><span class="p">],</span>
+                                      <span class="n">template_wave</span><span class="p">[</span><span class="n">ind_filter</span><span class="p">])</span>
+
+            <span class="n">template_flux_norm</span> <span class="o">=</span> <span class="n">template_flux</span> <span class="o">/</span> <span class="p">(</span><span class="n">template_constant</span> <span class="o">/</span> <span class="n">filter_constant</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c1"># normlized at certain wavelength</span>
+            <span class="n">normalized_wave</span> <span class="o">=</span> <span class="n">inormalize</span><span class="p">[</span><span class="s1">&#39;wavelength&#39;</span><span class="p">]</span>
+            <span class="n">template_flux0</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">normalized_wave</span><span class="p">,</span> <span class="n">template_wave</span><span class="p">,</span> <span class="n">template_flux</span><span class="p">)</span>
+            <span class="n">template_flux_norm</span> <span class="o">=</span> <span class="n">template_flux</span> <span class="o">/</span> <span class="n">template_flux0</span>
+
+
+        <span class="c1"># get scaled factor at the normalized wave</span>
+        <span class="c1"># convert the unit to erg/s/cm^2/A</span>
+        <span class="k">if</span> <span class="n">inormalize</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;erg/s/cm^2/Hz&#39;</span><span class="p">:</span>
+            <span class="n">u0</span> <span class="o">=</span> <span class="p">(</span><span class="n">inormalize</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">erg</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">Hz</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+                <span class="n">u</span><span class="o">.</span><span class="n">erg</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">spectral_density</span><span class="p">(</span><span class="n">normalized_wave</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">inormalize</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;AB magnitude&#39;</span><span class="p">:</span>
+            <span class="n">u0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="p">((</span><span class="n">inormalize</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mf">48.6</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">))</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">erg</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">Hz</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+                <span class="n">u</span><span class="o">.</span><span class="n">erg</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">s</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">,</span> <span class="n">equivalencies</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">spectral_density</span><span class="p">(</span><span class="n">normalized_wave</span> <span class="o">*</span> <span class="n">u</span><span class="o">.</span><span class="n">AA</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">u0</span> <span class="o">=</span> <span class="n">inormalize</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+        <span class="n">u0</span> <span class="o">=</span> <span class="n">u0</span><span class="o">.</span><span class="n">value</span>
+
+
+        <span class="c1"># get scaled 2d image</span>
+        <span class="c1"># https://docs.astropy.org/en/stable/modeling/predef_models2D.html</span>
+        <span class="c1"># input xy-offset unit as arcsec</span>
+        <span class="c1"># input FWHM unit as arcsec</span>
+        <span class="c1"># output xy-grid unit in spaxels (0.2&quot; per grid)</span>
+
+        <span class="n">geometry</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span>
+        <span class="n">xcen</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">nx</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;position&#39;</span><span class="p">][</span><span class="s1">&#39;x_offset&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">dx</span>
+        <span class="n">ycen</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">ny</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;position&#39;</span><span class="p">][</span><span class="s1">&#39;y_offset&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">dy</span>
+
+        <span class="k">if</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;sersic&#39;</span><span class="p">:</span>
+
+            <span class="n">rmaj</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;Re_maj&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">dx</span>
+            <span class="n">rmin</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;b2a&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">rmaj</span>
+            <span class="n">sersicn</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;sersic_n&#39;</span><span class="p">]</span>
+            <span class="n">ellip</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">rmin</span><span class="o">/</span><span class="n">rmaj</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;PA&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">90</span><span class="p">)</span> <span class="o">/</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+            <span class="n">u_re</span> <span class="o">=</span> <span class="n">u0</span>
+
+            <span class="n">mod</span> <span class="o">=</span> <span class="n">Sersic2D</span><span class="p">(</span><span class="n">amplitude</span><span class="o">=</span><span class="n">u_re</span><span class="p">,</span> <span class="n">r_eff</span><span class="o">=</span><span class="n">rmaj</span><span class="p">,</span>
+                           <span class="n">n</span><span class="o">=</span><span class="n">sersicn</span><span class="p">,</span> <span class="n">x_0</span><span class="o">=</span><span class="n">xcen</span><span class="p">,</span> <span class="n">y_0</span><span class="o">=</span><span class="n">ycen</span><span class="p">,</span>
+                           <span class="n">ellip</span><span class="o">=</span><span class="n">ellip</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;flatbox&#39;</span><span class="p">:</span>
+
+            <span class="n">xwidth</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;xwidth&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">dx</span>
+            <span class="n">ywidth</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;ywidth&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">dy</span>
+
+            <span class="n">mod</span> <span class="o">=</span> <span class="n">Box2D</span><span class="p">(</span><span class="n">amplitude</span><span class="o">=</span><span class="n">u0</span><span class="p">,</span> <span class="n">x_0</span><span class="o">=</span><span class="n">xcen</span><span class="p">,</span> <span class="n">y_0</span><span class="o">=</span><span class="n">ycen</span><span class="p">,</span>
+                        <span class="n">x_width</span><span class="o">=</span><span class="n">xwidth</span><span class="p">,</span> <span class="n">y_width</span><span class="o">=</span><span class="n">ywidth</span><span class="p">)</span>
+
+
+        <span class="k">elif</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;gaussian&#39;</span><span class="p">:</span>
+
+            <span class="n">u_peak</span> <span class="o">=</span> <span class="n">u0</span>
+            <span class="n">x_stddev</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;x_fwhm&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">2.35</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">dx</span>
+            <span class="n">y_stddev</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;y_fwhm&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">2.35</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">dy</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;PA&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">90</span><span class="p">)</span> <span class="o">/</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="n">Box2D</span><span class="p">(</span><span class="n">amplitude</span><span class="o">=</span><span class="n">u_peak</span><span class="p">,</span> <span class="n">x_mean</span><span class="o">=</span><span class="n">xcen</span><span class="p">,</span> <span class="n">y_mean</span><span class="o">=</span><span class="n">ycen</span><span class="p">,</span>
+                        <span class="n">x_stddev</span><span class="o">=</span><span class="n">x_stddev</span><span class="p">,</span> <span class="n">y_stddev</span><span class="o">=</span><span class="n">y_stddev</span><span class="p">,</span>
+                        <span class="n">theta</span><span class="o">=</span><span class="n">theta</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;PSF&#39;</span><span class="p">:</span>
+
+            <span class="c1"># only valid for point source.</span>
+            <span class="c1"># the normalized value is thought to be the integral value.</span>
+            <span class="c1"># for gaussian integral flux = 2 * pi * A * sigma_x * sigma_y</span>
+            <span class="n">x_stddev</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">/</span> <span class="mf">2.35</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">dx</span>
+            <span class="n">y_stddev</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">/</span> <span class="mf">2.35</span> <span class="o">/</span> <span class="n">grid</span><span class="o">.</span><span class="n">dy</span>
+            <span class="n">u_peak</span> <span class="o">=</span> <span class="n">u0</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">x_stddev</span> <span class="o">/</span> <span class="n">y_stddev</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="n">Gaussian2D</span><span class="p">(</span><span class="n">amplitude</span><span class="o">=</span><span class="n">u_peak</span><span class="p">,</span> <span class="n">x_mean</span><span class="o">=</span><span class="n">xcen</span><span class="p">,</span> <span class="n">y_mean</span><span class="o">=</span><span class="n">ycen</span><span class="p">,</span>
+                        <span class="n">x_stddev</span><span class="o">=</span><span class="n">x_stddev</span><span class="p">,</span> <span class="n">y_stddev</span><span class="o">=</span><span class="n">y_stddev</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">geometry</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39; is not defined.&#39;</span><span class="p">)</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># generate the xy grid</span>
+        <span class="c1"># unit in spaxel (0.2&quot; per grid)</span>
+        <span class="n">scaled_img</span> <span class="o">=</span> <span class="n">mod</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">x2d</span><span class="p">,</span> <span class="n">grid</span><span class="o">.</span><span class="n">y2d</span><span class="p">)</span>
+
+        <span class="c1"># make to a cube for each component</span>
+        <span class="n">tmp_template_flux</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">template_flux_norm</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h w c&#39;</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span>
+        <span class="n">tmp_factor</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">scaled_img</span><span class="p">,</span> <span class="s1">&#39;w c -&gt; h w c&#39;</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">template_wave</span><span class="p">))</span>
+        <span class="n">norm_flux</span> <span class="o">=</span> <span class="n">tmp_template_flux</span> <span class="o">*</span> <span class="n">tmp_factor</span>
+
+        <span class="n">cube_flux</span> <span class="o">=</span> <span class="n">cube_flux</span> <span class="o">+</span> <span class="n">norm_flux</span>
+
+
+    <span class="c1"># generate the wavelength cube</span>
+    <span class="n">cube_wave</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="n">template_wave</span><span class="p">,</span> <span class="s1">&#39;h -&gt; h w c&#39;</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">grid</span><span class="o">.</span><span class="n">nx</span><span class="p">)</span>
+
+
+    <span class="c1"># check the magnitude</span>
+    <span class="nb">filter</span> <span class="o">=</span> <span class="n">read_filter</span><span class="p">(</span><span class="s1">&#39;sdss_g&#39;</span><span class="p">)</span>
+    <span class="n">mag2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="n">grid</span><span class="o">.</span><span class="n">nx</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">ny</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">nx</span><span class="p">):</span>
+            <span class="n">mag2d</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">filter_mag</span><span class="p">(</span><span class="n">cube_wave</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="n">cube_flux</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span>
+                                   <span class="nb">filter</span><span class="o">.</span><span class="n">wave</span><span class="p">,</span> <span class="nb">filter</span><span class="o">.</span><span class="n">throughput</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;mag&#39;</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">cube_wave</span><span class="p">,</span> <span class="n">cube_flux</span><span class="p">,</span> <span class="n">mag2d</span></div>
+
+
+<div class="viewcode-block" id="ModelCube"><a class="viewcode-back" href="../../../api/ifs_etc.etc2d.source.html#ifs_etc.etc2d.source.ModelCube">[docs]</a><span class="k">class</span> <span class="nc">ModelCube</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ccdspec_wave</span> <span class="o">=</span> <span class="n">get_wavearr</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ccdspec_nw</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ccdspec_wave</span><span class="p">)</span>
+
+        <span class="c1"># grid = Grid(config)</span>
+        <span class="n">n_source</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_source</span><span class="p">):</span>
+
+            <span class="n">iobject</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="n">template</span> <span class="o">=</span> <span class="n">read_template</span><span class="p">(</span><span class="n">iobject</span><span class="p">[</span><span class="s1">&#39;spectrum&#39;</span><span class="p">])</span>
+            <span class="n">template_wave_interp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ccdspec_wave</span>
+            <span class="n">template_flux_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">template_wave_interp</span><span class="p">,</span> <span class="n">template</span><span class="o">.</span><span class="n">wave</span><span class="p">,</span> <span class="n">template</span><span class="o">.</span><span class="n">flux</span><span class="p">)</span>
+
+            <span class="c1"># self.ccdspec_flux = np.zeros(shape=(self.ccdspec_nw, grid.ny, grid.nx), dtype=np.float32)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">wavecube</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fluxcube</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mag2d</span> <span class="o">=</span> <span class="n">normalized</span><span class="p">(</span><span class="n">template_wave_interp</span><span class="p">,</span> <span class="n">template_flux_interp</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></div>
+
+
+    <span class="c1"># def export_to_fits(self, fitsfile=&#39;ModelCube&#39;):</span>
+    <span class="c1">#</span>
+
+
+
+<span class="c1"># class ConvolvedCube(object):</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, ifs_etc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

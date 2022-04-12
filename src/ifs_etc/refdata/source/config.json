@@ -1,0 +1,24 @@
+{
+  "id": 1,
+  "geometry": {
+    "type": "flat",
+    "x_offset": 0.0,
+    "y_offset": 0.0,
+    "PA": 45.0,
+    "Re_major": 3.0,
+    "Re_minor": 1.5,
+    "sersic_n": 1,
+    "xwidth": 2.0,
+    "ywidth": 2.0
+  },
+  "spectrum": {
+    "name": "SFgal_texp_FeH0_tau5_Ew10_AGN1.fits",
+    "redshift": 0.0,
+    "lines": []
+  },
+  "normalization": {
+    "value": 17.7,
+    "unit": "mag/arcsec^2",
+    "band": "SDSS-g"
+  }
+}
